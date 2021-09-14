@@ -82,6 +82,7 @@ class Board {
             new Position(7, 7).toString(),
             new Rook(false))
     }
+
     move(chessCoord) {
         // parse coord to figure out which piece is supposed to move
         // get pieces

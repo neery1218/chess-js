@@ -1,6 +1,13 @@
 const {Position} = require('./position')
 const {Board} = require('./board')
 const {Knight, Bishop, Rook, Queen, Pawn, Piece} = require('./piece')
+const {process_chess_coord} = require('./chess_coord.js')
+
+console.log(process_chess_coord('Ne4'))
+console.log(process_chess_coord('d4'))
+console.log(process_chess_coord('cxd4'))
+console.log(process_chess_coord('O-O-O'))
+
 
 var a = new Pawn(true)
 console.log(a instanceof Pawn)
