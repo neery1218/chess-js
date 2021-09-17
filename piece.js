@@ -1,226 +1,253 @@
-const {Position} = require('./position')
+const { Position } = require("./position");
 
 class Piece {
-    constructor(is_white) {
-        this.is_white = is_white
-    }
-    get_moves(board, pos) {
-        throw "Unimplemented!"
-    }
+  constructor(is_white, pos, name) {
+    this.is_white = is_white;
+    this.pos = pos;
+    this.name = name
+  }
+  get_moves(board) {
+    throw "Unimplemented!";
+  }
 
-    // returns positions of valid moves. Moves returned from this function can potentially
-    // put the king in check, and that'll have to be checked in the board class.
-    move(new_pos) {
-        throw "Unimplemented!"
-    }
+  // returns positions of valid moves. Moves returned from this function can potentially
+  // put the king in check, and that'll have to be checked in the board class.
+  move(new_pos) {
+    throw "Unimplemented!";
+  }
 
-    toString() {
-        throw "Unimplemented!"
-    }
+  toString() {
+    throw "Unimplemented!";
+  }
 
-    in_bounds(pos) {
-        return pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8
-    }
-    collision(pos, board) {
-        var friendly_piece_pos = Array.from((this.is_white ? board.white_pieces : board.black_pieces).keys())
-        return friendly_piece_pos.some(
-            (piece) => {
-                return pos.x === piece.pos.x && pos.y === piece.pos.y
-            }
-        ) 
-    }
+  in_bounds(pos) {
+    return pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8;
+  }
 
-    // keep adding direction to cur_pos until cur_pos is out of bounds
-    // or collides with a piece. useful for implementing get_moves() for
-    // Rook, Bishop, Queen.
-    get_vector_moves(directions, board, pos) {
-        var moves = []
-        for (var dir of directions) {
-            var cur_pos = pos
-            for (var i in [...Array(8).keys()]) {
-                cur_pos = cur_pos.add(new Position(dir.x, dir.y))
-                if (this.collision(cur_pos, board) || !this.in_bounds(cur_pos)) {
-                    break
-                }
-                moves.push(cur_pos)
-            }
+  friendly_collision(pos, board) {
+    var pieces = this.is_white ? board.white_pieces : board.black_pieces;
+    return this.collision(pos, pieces);
+  }
+
+  enemy_collision(pos, board) {
+    var pieces = this.is_white ? board.black_pieces : board.white_pieces;
+    return this.collision(pos, pieces);
+  }
+
+  collision(pos, pieces) {
+    return pieces.some((piece) => {
+      return pos.x === piece.pos.x && pos.y === piece.pos.y;
+    });
+  }
+
+  // keep adding direction to cur_pos until cur_pos is out of bounds
+  // or collides with a piece. useful for implementing get_moves() for
+  // Rook, Bishop, Queen.
+  get_vector_moves(directions, board) {
+    var moves = [];
+    for (var dir of directions) {
+      var cur_pos = this.pos;
+      for (var i in [...Array(8).keys()]) {
+        cur_pos = cur_pos.add(new Position(dir.x, dir.y));
+        if (this.friendly_collision(cur_pos, board) || !this.in_bounds(cur_pos)) {
+          break;
         }
-        return moves
+        moves.push(cur_pos);
+        if (this.enemy_collision(cur_pos, board)) {
+            break;
+        }
+      }
     }
+    return moves;
+  }
+
+  copy() {
+    var cloned = Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+
+    // ^ is a shallow clone, so i gotta deepcopy all non-primitive attributes
+    cloned.pos = this.pos.copy()
+
+    return cloned
+  }
 }
 
 class Pawn extends Piece {
-    constructor (is_white, pos) {
-        super(is_white, pos)
-        this.vector = (is_white ? 1 : -1)
-        this.moved = false
+  constructor(is_white, pos) {
+    super(is_white, pos, "Pawn");
+    this.vector = is_white ? 1 : -1;
+    this.moved = false;
+  }
+
+  toString() {
+    return this.is_white ? "WP" : "BP";
+  }
+
+  // needs to be called by board to make sure we don't double move anymore
+  set_moved() {
+    this.moved = true;
+  }
+
+  get_moves(board) {
+    var moves = [];
+    var dir = this.is_white ? new Position(0, 1) : new Position(0, -1);
+
+    var forward = this.pos.add(dir);
+    if (!this.friendly_collision(forward, board) && !this.enemy_collision(forward, board)) {
+      moves.push(forward);
     }
 
-    toString() {
-        return this.is_white ? "WP" : "BP"
+    // check for captures
+    var left = forward.add(new Position(-1, 0));
+    var right = forward.add(new Position(1, 0));
+    var opp_pieces = this.is_white ? board.black_pieces : board.white_pieces;
+
+    if (
+      this.in_bounds(left) &&
+      opp_pieces.some((p) => p.pos.x == left.x && p.pos.y == left.y)
+    ) {
+      moves.push(left);
+    }
+    if (
+      this.in_bounds(right) &&
+      opp_pieces.some((p) => p.pos.x == right.x && p.pos.y == right.y)
+    ) {
+      moves.push(right);
     }
 
-    // needs to be called by board to make sure we don't double move anymore
-    set_moved() {
-        this.moved = true
+    // check for first move
+    if (!this.moved) {
+      var double = forward.add(dir);
+      if (!this.friendly_collision(double, board) && !this.enemy_collision(double, board)) {
+        moves.push(double);
+      }
     }
 
-    get_moves(board, pos) {
-        var moves = []
-        var dir = this.is_white ? new Position(0, 1) : new Position(0, -1)
-
-        var forward = pos.add(dir)
-        if (!this.collision(forward, board)) {
-            moves.push(forward)
-        }
-
-        // check for captures
-        var left = forward.add(new Position(-1, 0))
-        var right = forward.add(new Position(1, 0))
-        var opp_pieces = this.is_white ? board.black_pieces : board.white_pieces
-
-        if (this.in_bounds(left) && opp_pieces.has(left.toString())) {
-            moves.push(left)
-        }
-        if (this.in_bounds(right) && opp_pieces.has(right.toString())) {
-            moves.push(right)
-        }
-
-        // check for first move
-        if (!this.moved) {
-            var double = forward.add(dir)
-            if (!this.collision(double, board)) {
-                moves.push(double)
-            }
-        }
-
-        // TODO: check for en passant
-        return moves
-    }
+    // TODO: check for en passant
+    return moves;
+  }
 }
 
 class Knight extends Piece {
-    constructor (is_white) {
-        super(is_white)
-    }
+  constructor(is_white, pos) {
+    super(is_white, pos, "Knight");
+  }
 
-    toString() {
-        return this.is_white ? "WN" : "BN"
-    }
+  toString() {
+    return this.is_white ? "WN" : "BN";
+  }
 
-    get_moves(board, pos) {
-        var candidate_moves = [
-            pos.add(new Position(-2, 1)), 
-            pos.add(new Position(-1, 2)),
-            pos.add(new Position(1, 2)),
-            pos.add(new Position(2, 1)),
-            pos.add(new Position(2, -1)),
-            pos.add(new Position(1, -2)),
-            pos.add(new Position(-1, -2)),
-            pos.add(new Position(-2, -1)),
-        ]
-        return candidate_moves.filter(pos => {
-            return this.in_bounds(pos) && !this.collision(pos, board)
-        })
-    }
+  get_moves(board) {
+    var candidate_moves = [
+      this.pos.add(new Position(-2, 1)),
+      this.pos.add(new Position(-1, 2)),
+      this.pos.add(new Position(1, 2)),
+      this.pos.add(new Position(2, 1)),
+      this.pos.add(new Position(2, -1)),
+      this.pos.add(new Position(1, -2)),
+      this.pos.add(new Position(-1, -2)),
+      this.pos.add(new Position(-2, -1)),
+    ];
+    return candidate_moves.filter((pos) => {
+      return this.in_bounds(pos) && !this.friendly_collision(pos, board);
+    });
+  }
 }
 
 class Bishop extends Piece {
-    constructor (is_white) {
-        super(is_white)
-    }
+  constructor(is_white, pos) {
+    super(is_white, pos, "Bishop");
+  }
 
-    toString() {
-        return this.is_white ? "WB" : "BB"
-    }
+  toString() {
+    return this.is_white ? "WB" : "BB";
+  }
 
-    get_moves(board, pos) {
-        var directions = [
-            {x: 1, y: 1}, 
-            {x: 1, y: -1},
-            {x: -1, y: -1},
-            {x: -1, y: 1}
-        ]
-        return this.get_vector_moves(directions, board, pos)
-    }
+  get_moves(board) {
+    var directions = [
+      { x: 1, y: 1 },
+      { x: 1, y: -1 },
+      { x: -1, y: -1 },
+      { x: -1, y: 1 },
+    ];
+    return this.get_vector_moves(directions, board);
+  }
 }
 
 class Rook extends Piece {
-    constructor (is_white, pos) {
-        super(is_white, pos)
-    }
+  constructor(is_white, pos) {
+    super(is_white, pos, "Rook");
+  }
 
-    toString() {
-        return this.is_white ? "WR" : "BR"
-    }
+  toString() {
+    return this.is_white ? "WR" : "BR";
+  }
 
-    get_moves(board, pos) {
-        var directions = [
-            {x: 1, y: 0}, 
-            {x: -1, y: 0},
-            {x: 0, y: 1},
-            {x: 0, y: -1}
-        ]
-        return this.get_vector_moves(directions, board, pos)
-    }
+  get_moves(board) {
+    var directions = [
+      { x: 1, y: 0 },
+      { x: -1, y: 0 },
+      { x: 0, y: 1 },
+      { x: 0, y: -1 },
+    ];
+    return this.get_vector_moves(directions, board);
+  }
 }
 
 class Queen extends Piece {
-    constructor (is_white, pos) {
-        super(is_white, pos)
-    }
+  constructor(is_white, pos) {
+    super(is_white, pos, "Queen");
+  }
 
-    toString() {
-        return this.is_white ? "WQ" : "BQ"
-    }
+  toString() {
+    return this.is_white ? "WQ" : "BQ";
+  }
 
-    get_moves(board, pos) {
-        var directions = [
-            {x: 1, y: 1}, 
-            {x: 1, y: -1},
-            {x: -1, y: -1},
-            {x: -1, y: 1},
-            {x: 1, y: 0}, 
-            {x: -1, y: 0},
-            {x: 0, y: 1},
-            {x: 0, y: -1},
-        ]
-        return this.get_vector_moves(directions, board, pos)
-    }
+  get_moves(board, pos) {
+    var directions = [
+      { x: 1, y: 1 },
+      { x: 1, y: -1 },
+      { x: -1, y: -1 },
+      { x: -1, y: 1 },
+      { x: 1, y: 0 },
+      { x: -1, y: 0 },
+      { x: 0, y: 1 },
+      { x: 0, y: -1 },
+    ];
+    return this.get_vector_moves(directions, board);
+  }
 }
 
 class King extends Piece {
-    constructor (is_white, pos) {
-        super(is_white, pos)
-    }
+  constructor(is_white, pos) {
+    super(is_white, pos, "King");
+  }
 
-    toString() {
-        return this.is_white ? "WK" : "BK"
-    }
+  toString() {
+    return this.is_white ? "WK" : "BK";
+  }
 
-    get_moves(board, pos) {
-        var candidate_moves = [
-            pos.add(new Position(-1, 0)),
-            pos.add(new Position(-1, -1)),
-            pos.add(new Position(0, -1)),
-            pos.add(new Position(1, -1)),
-            pos.add(new Position(1, 0)),
-            pos.add(new Position(1, 1)),
-            pos.add(new Position(0, 1)),
-            pos.add(new Position(-1, 1))
-        ]
+  get_moves(board) {
+    var candidate_moves = [
+      this.pos.add(new Position(-1, 0)),
+      this.pos.add(new Position(-1, -1)),
+      this.pos.add(new Position(0, -1)),
+      this.pos.add(new Position(1, -1)),
+      this.pos.add(new Position(1, 0)),
+      this.pos.add(new Position(1, 1)),
+      this.pos.add(new Position(0, 1)),
+      this.pos.add(new Position(-1, 1)),
+    ];
 
-        return candidate_moves.filter(pos => {
-            return this.in_bounds(pos) && !this.collision(pos, board)
-        })
-
-    }
+    return candidate_moves.filter((pos) => {
+      return this.in_bounds(pos) && !this.friendly_collision(pos, board);
+    });
+  }
 }
 
-module.exports.Knight = Knight
-module.exports.Bishop = Bishop
-module.exports.Rook = Rook
-module.exports.Queen = Queen
-module.exports.Pawn = Pawn
-module.exports.King = King
-module.exports.Piece = Piece
+module.exports.Knight = Knight;
+module.exports.Bishop = Bishop;
+module.exports.Rook = Rook;
+module.exports.Queen = Queen;
+module.exports.Pawn = Pawn;
+module.exports.King = King;
+module.exports.Piece = Piece;

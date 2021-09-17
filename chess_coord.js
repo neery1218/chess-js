@@ -11,7 +11,7 @@ function process_chess_coord(chess_coord) {
   //     "O-O" => {move_type: Castle, castle_type: King}
   //     "Nbd4" => {move_type: Regular, type: Knight, from_col: null, pos: ....}
   // return null if chess_coord is invalid
-
+  console.log("chess_coord.js: Process chess move " + chess_coord)
   if (chess_coord == "O-O") {
     return { move_type: MOVE_KINGSIDE_CASTLE };
   }
@@ -68,10 +68,10 @@ function coord_to_position(coord) {
   assert(coord.length == 2);
 
   var x = letter_to_x(coord[0]);
-  var y = parseInt(coord[1]);
+  var y = parseInt(coord[1]) - 1;
 
-  assert(y >= 0 && y < 7, y);
-  assert(x >= 0 && x < 7, x);
+  assert(y >= 0 && y < 8, y);
+  assert(x >= 0 && x < 8, x);
 
   return new Position(x, y);
 }

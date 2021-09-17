@@ -10,6 +10,10 @@ class Position {
     toString() {
         return this.x + ":" + this.y
     }
+
+    copy() {
+        return new Position(this.x, this.y)
+    }
 }
 
 module.exports.Position = Position
