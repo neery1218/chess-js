@@ -16,9 +16,9 @@ console.log(bishop.get_moves(b))
 
 // console.debug = function() {}
 
-b.move('e4')
-b.move('d5')
-b.move('Bb5')
+// b.move('e4')
+// b.move('d5')
+// b.move('Bb5')
 // b.move('c6')
 
 // b.move('e4')
@@ -29,3 +29,17 @@ b.move('Bb5')
 // b.move('h6')
 // b.move('Qf7')
 console.log(b.toString())
+
+
+var b = new Board()
+b.move('e4')
+b.move('e5')
+b.move('Nf3')
+b.move('Nc6')
+b.move('Bc4')
+b.move('Bc5')
+console.log(b.toString())
+b.move("O-O")
+console.log(b.toString())
+
+

@@ -5,9 +5,15 @@ class Piece {
     this.is_white = is_white;
     this.pos = pos;
     this.name = name
+    this.moved = false
   }
   get_moves(board) {
     throw "Unimplemented!";
+  }
+
+  // needs to be called by board to make sure we don't double move anymore
+  set_moved() {
+    this.moved = true;
   }
 
   // returns positions of valid moves. Moves returned from this function can potentially
@@ -82,10 +88,6 @@ class Pawn extends Piece {
     return this.is_white ? "WP" : "BP";
   }
 
-  // needs to be called by board to make sure we don't double move anymore
-  set_moved() {
-    this.moved = true;
-  }
 
   get_moves(board) {
     var moves = [];

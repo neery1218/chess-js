@@ -47,7 +47,7 @@ function process_chess_coord(chess_coord) {
 
   if (chess_coord.length > 2) {
     // TODO: process disambiguation (cd4, 1d4, c1d4)
-    disambiguation = chess_coord.substring(0, chess_coord.length - 2); // c, 1, c1
+    disambiguation = process_disambiguation(chess_coord.substring(0, chess_coord.length - 2)); // c, 1, c1
     chess_coord = chess_coord.substring(chess_coord.length - 2);
   }
 
@@ -62,6 +62,28 @@ function process_chess_coord(chess_coord) {
     position: pos,
     disambiguation: disambiguation,
   };
+}
+
+function process_disambiguation(dis) {
+  console.debug("Process dis: " + dis)
+  // 1 => Point(null, 0)
+  // c => Point(2, null)
+  // c1 => Point(2, 0)
+  if (/^[1-8]$/.test(dis)) {
+    var row = parseInt(dis) - 1
+    return new Position(null, row)
+  }
+  else if (/^[a-h]$/.test(dis)) {
+    var x = letter_to_x(dis)
+    return new Position(x, null)
+  }
+  else if (/^[a-h][1-8]$/.test(dis)) {
+    var x = letter_to_x(dis[0])
+    var y = parseInt(dis[1]) - 1
+    return new Position(x, y)
+  }
+
+  assert(false) // should never get here!
 }
 
 function coord_to_position(coord) {
