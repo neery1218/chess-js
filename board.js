@@ -10,7 +10,6 @@ const { assert } = require("./utils");
 
 const STATUS_OK = 0;
 const STATUS_INVALID_MOVE = 1;
-const STATUS_CHECK = 2;
 const STATUS_CHECKMATE = 3;
 
 class Board {
@@ -54,10 +53,6 @@ class Board {
   }
 
   copy() {
-    if (this.game_over) {
-      return STATUS_CHECKMATE;
-    }
-
     var b = new Board();
     b.white_turn = this.white_turn;
     b.game_over = this.game_over;
@@ -82,7 +77,7 @@ class Board {
     return b;
   }
 
-  moveFromTo(from_pos, to_pos) {
+  moveFromTo(from_pos, to_pos, promote_type) {
     // find piece
     console.log("moveFromTo: " + from_pos + " " + to_pos);
     var pieces = this.white_turn ? this.white_pieces : this.black_pieces;
@@ -105,6 +100,17 @@ class Board {
     this.moves.push({ piece: candidate_piece, from: from_pos, to: to_pos });
     if (candidate_piece instanceof Pawn) {
       candidate_piece.set_moved();
+    }
+
+    // promotion: remove current piece, add new piece with same position
+    if (promote_type) {
+      pieces = pieces.filter((p) => !(p.pos.x == to_pos.x && p.pos.y == to_pos.y))
+      pieces.push(new promote_type(this.white_turn, new Position(to_pos.x, to_pos.y)))
+      if (this.white_turn) {
+        this.white_pieces = pieces
+      } else {
+        this.black_pieces = pieces
+      }
     }
 
     // remove captured piece, if any
@@ -207,6 +213,8 @@ class Board {
       rook.pos = new Position(3, rank);
     }
     this.white_turn = !this.white_turn;
+
+    return STATUS_OK
   }
 
   find_piece_by_coord(find_white_pieces, pos) {
@@ -261,9 +269,8 @@ class Board {
     assert(candidate_pieces.length == 1);
     var candidate_piece = candidate_pieces[0];
 
-    // if we move this piece, is the friendly king in check?
     var old_pos = new Position(candidate_piece.pos.x, candidate_piece.pos.y);
-    return this.moveFromTo(old_pos, coord.position);
+    return this.moveFromTo(old_pos, coord.position, ('promote' in coord) ? coord.promote : null);
   }
 
   // is_check(true) => check's if white king is in check
@@ -339,3 +346,6 @@ class Board {
 }
 
 module.exports.Board = Board;
+module.exports.STATUS_OK = STATUS_OK;
+module.exports.STATUS_INVALID_MOVE = STATUS_INVALID_MOVE;
+module.exports.STATUS_CHECKMATE = STATUS_CHECKMATE;

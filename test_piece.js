@@ -2,6 +2,7 @@ const { Board } = require("./board");
 const { Knight, Bishop, Rook, Queen, Pawn, Piece } = require("./piece");
 const { Position } = require("./position");
 
+
 var b = new Board()
 console.log(b.toString())
 
@@ -16,30 +17,23 @@ console.log(bishop.get_moves(b))
 
 // console.debug = function() {}
 
-// b.move('e4')
-// b.move('d5')
-// b.move('Bb5')
-// b.move('c6')
-
-// b.move('e4')
-// b.move('e5')
-// b.move('Qf3')
-// b.move('a6')
-// b.move('Bc4')
-// b.move('h6')
-// b.move('Qf7')
 console.log(b.toString())
-
+debugger;
 
 var b = new Board()
-b.move('e4')
-b.move('e5')
-b.move('Nf3')
-b.move('Nc6')
-b.move('Bc4')
-b.move('Bc5')
-console.log(b.toString())
-b.move("O-O")
-console.log(b.toString())
+var moves = [
+  'a4',
+  'b6',
+  'a5',
+  'h6',
+  'axb6',
+  'h5',
+  'b7',
+  'h4',
+  'bxa8=Q'
+]
 
-
+for (m of moves) {
+  b.move(m)
+  console.log(b.toString())
+}

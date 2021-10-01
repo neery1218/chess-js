@@ -8,17 +8,6 @@ const {process_chess_coord} = require('./chess_coord.js')
 // console.log(process_chess_coord('cxd4'))
 // console.log(process_chess_coord('O-O-O'))
 
-var b = new Board()
-var b_copy = b.copy()
-debugger;
-
-console.log(JSON.stringify(b))
-
-var b_clone = JSON.parse(JSON.stringify(b))
-
-var p = new Pawn(true, new Position(3,4))
-var p_clone = p.copy()
-debugger;
 // const readline = require("readline");
 // const rl = readline.createInterface({
 //     input: process.stdin,

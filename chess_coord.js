@@ -5,18 +5,39 @@ const { assert } = require("./utils")
 const MOVE_KINGSIDE_CASTLE = 0;
 const MOVE_QUEENSIDE_CASTLE = 1;
 const MOVE_REGULAR = 2;
+const MOVE_PAWN_PROMOTION = 3;
 
 function process_chess_coord(chess_coord) {
   // e.g "Ne4" OR "Nxe4" => {move_type: Regular, type: Knight, from_col: null, pos: new Position(4, 3)}
   //     "O-O" => {move_type: Castle, castle_type: King}
   //     "Nbd4" => {move_type: Regular, type: Knight, from_col: null, pos: ....}
+  //     "e8=Q" => {move_type: Promotion, type:Pawn, promote: Queen}
   // return null if chess_coord is invalid
   console.log("chess_coord.js: Process chess move " + chess_coord)
+
+  // special cases
+  // castling
   if (chess_coord == "O-O") {
     return { move_type: MOVE_KINGSIDE_CASTLE };
   }
   if (chess_coord == "O-O-O") {
     return { move_type: MOVE_QUEENSIDE_CASTLE };
+  }
+
+  var processed = { 
+    move_type: MOVE_REGULAR,
+    type: null,
+    disambiguation: null,
+    position: null,
+    promote: null,
+  };
+
+  // promotion
+  if (chess_coord.indexOf("=") != -1) {
+    var piece = letter_to_piece(chess_coord[chess_coord.length - 1])
+    processed.move_type = MOVE_PAWN_PROMOTION
+    processed.promote = piece
+    chess_coord = chess_coord.substring(0, chess_coord.length - 2)
   }
 
   // filter out 'x' Nxe4 => Ne4. All coords should be 3 or 4 letters long
@@ -33,6 +54,7 @@ function process_chess_coord(chess_coord) {
   var piece = ["N", "B", "Q", "R", "K"].includes(chess_coord[0])
     ? letter_to_piece(chess_coord[0])
     : Pawn;
+  processed.type = piece
 
   if (piece == null) {
     return null;
@@ -46,22 +68,19 @@ function process_chess_coord(chess_coord) {
   }
 
   if (chess_coord.length > 2) {
-    // TODO: process disambiguation (cd4, 1d4, c1d4)
     disambiguation = process_disambiguation(chess_coord.substring(0, chess_coord.length - 2)); // c, 1, c1
+    processed.disambiguation = disambiguation
+
     chess_coord = chess_coord.substring(chess_coord.length - 2);
   }
 
   var pos = coord_to_position(chess_coord);
+  processed.position = pos
   if (pos == null) {
     return null;
   }
 
-  return {
-    move_type: MOVE_REGULAR,
-    type: piece,
-    position: pos,
-    disambiguation: disambiguation,
-  };
+  return processed
 }
 
 function process_disambiguation(dis) {
