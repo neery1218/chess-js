@@ -47,9 +47,7 @@ class Piece {
   }
 
   any_collision(pos, board) {
-    return (
-      this.friendly_collision(pos, board) || this.enemy_collision(pos, board)
-    );
+    return this.friendly_collision(pos, board) || this.enemy_collision(pos, board);
   }
 
   // keep adding direction to cur_pos until cur_pos is out of bounds
@@ -61,10 +59,7 @@ class Piece {
       var cur_pos = this.pos;
       for (var i in [...Array(8).keys()]) {
         cur_pos = cur_pos.add(new Position(dir.x, dir.y));
-        if (
-          this.friendly_collision(cur_pos, board) ||
-          !this.in_bounds(cur_pos)
-        ) {
+        if (this.friendly_collision(cur_pos, board) || !this.in_bounds(cur_pos)) {
           break;
         }
         moves.push(cur_pos);
@@ -77,10 +72,7 @@ class Piece {
   }
 
   copy() {
-    var cloned = Object.assign(
-      Object.create(Object.getPrototypeOf(this)),
-      this
-    );
+    var cloned = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
 
     // ^ is a shallow clone, so i gotta deepcopy all non-primitive attributes
     cloned.pos = this.pos.copy();
@@ -121,16 +113,10 @@ class Pawn extends Piece {
     var right = forward.add(new Position(1, 0));
     var opp_pieces = this.is_white ? board.black_pieces : board.white_pieces;
 
-    if (
-      this.in_bounds(left) &&
-      opp_pieces.some((p) => p.pos.x == left.x && p.pos.y == left.y)
-    ) {
+    if (this.in_bounds(left) && opp_pieces.some((p) => p.pos.x == left.x && p.pos.y == left.y)) {
       moves.push(left);
     }
-    if (
-      this.in_bounds(right) &&
-      opp_pieces.some((p) => p.pos.x == right.x && p.pos.y == right.y)
-    ) {
+    if (this.in_bounds(right) && opp_pieces.some((p) => p.pos.x == right.x && p.pos.y == right.y)) {
       moves.push(right);
     }
 
@@ -138,14 +124,8 @@ class Pawn extends Piece {
     if (board.moves.length > 0) {
       var last_move = board.moves.slice(-1)[0];
       var distance = Math.abs(last_move.to.y - last_move.from.y);
-      if (
-        last_move.piece instanceof Pawn &&
-        distance == 2 &&
-        last_move.to.y == this.pos.y
-      ) {
-        moves.push(
-          new Position(last_move.to.x, this.pos.y).add(dir)
-        );
+      if (last_move.piece instanceof Pawn && distance == 2 && last_move.to.y == this.pos.y) {
+        moves.push(new Position(last_move.to.x, this.pos.y).add(dir));
       }
     }
 

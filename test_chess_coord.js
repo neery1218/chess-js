@@ -13,11 +13,11 @@ debugger;
 assert(coord.move_type == MOVE_REGULAR, coord);
 assert(coord.type == Knight, coord);
 assert(coord.position.x == 4 && coord.position.y == 3, JSON.stringify(coord));
-assert(coord.disambiguation.x == 3)
+assert(coord.disambiguation.x == 3);
 
 var coord = process_chess_coord("Nd2e4");
 debugger;
 assert(coord.move_type == MOVE_REGULAR, coord);
 assert(coord.type == Knight, coord);
 assert(coord.position.x == 4 && coord.position.y == 3, JSON.stringify(coord));
-assert(coord.disambiguation.x == 3 && coord.disambiguation.y == 1)
+assert(coord.disambiguation.x == 3 && coord.disambiguation.y == 1);

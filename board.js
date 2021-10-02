@@ -105,12 +105,12 @@ class Board {
 
     // promotion: remove current piece, add new piece with same position
     if (promote_type) {
-      pieces = pieces.filter((p) => !(p.pos.x == to_pos.x && p.pos.y == to_pos.y))
-      pieces.push(new promote_type(this.white_turn, new Position(to_pos.x, to_pos.y)))
+      pieces = pieces.filter((p) => !(p.pos.x == to_pos.x && p.pos.y == to_pos.y));
+      pieces.push(new promote_type(this.white_turn, new Position(to_pos.x, to_pos.y)));
       if (this.white_turn) {
-        this.white_pieces = pieces
+        this.white_pieces = pieces;
       } else {
-        this.black_pieces = pieces
+        this.black_pieces = pieces;
       }
     }
 
@@ -145,11 +145,11 @@ class Board {
     }
 
     if (this.is_draw()) {
-      console.log("Draw!")
+      console.log("Draw!");
       return STATUS_DRAW;
     }
 
-    return STATUS_OK
+    return STATUS_OK;
   }
 
   is_draw() {
@@ -161,9 +161,11 @@ class Board {
         var b_copy = this.copy();
         var status = b_copy.moveFromTo(p.pos, m);
         return status == STATUS_OK;
-        });
+      });
 
-      if (valid_moves.length > 0) { console.log("Valid moves found in piece" + JSON.stringify(p) + " Moves:" + valid_moves) }
+      if (valid_moves.length > 0) {
+        console.log("Valid moves found in piece" + JSON.stringify(p) + " Moves:" + valid_moves);
+      }
       return valid_moves;
     });
     if (available_moves.length == 0) {
@@ -179,30 +181,28 @@ class Board {
   }
 
   handleCastling(chessCoord) {
-    console.debug("Processing Castle")
-    var friendly_pieces = this.white_turn
-      ? this.white_pieces
-      : this.black_pieces;
+    console.debug("Processing Castle");
+    var friendly_pieces = this.white_turn ? this.white_pieces : this.black_pieces;
     var opp_pieces = this.white_turn ? this.black_pieces : this.white_pieces;
     var rank = this.white_turn ? 0 : 7;
 
     // condition 1: king is not in check
     if (this.is_check(this.white_turn)) {
-      console.log("Castling failed: condition 1")
+      console.log("Castling failed: condition 1");
       return STATUS_INVALID_MOVE;
     }
 
     // condition 2: king and rook haven't moved
     var king = this.find_piece_by_type(this.white_turn, King)[0];
     if (king.moved) {
-      console.log("Castling failed: condition 2a")
+      console.log("Castling failed: condition 2a");
       return STATUS_INVALID_MOVE;
     }
 
     var rook_x = chessCoord == MOVE_KINGSIDE_CASTLE ? 7 : 0;
     var rook = this.find_piece_by_coord(this.white_turn, new Position(rook_x, rank));
     if (!rook || rook.moved) {
-      console.log("Castling failed: condition 2b")
+      console.log("Castling failed: condition 2b");
       return STATUS_INVALID_MOVE;
     }
 
@@ -214,10 +214,8 @@ class Board {
         this.find_piece_by_coord(true, new Position(rook_x, i)) ||
         this.find_piece_by_coord(false, new Position(rook_x, i));
       if (piece) {
-        console.debug(
-          "Found piece in between king and rook!" + JSON.stringify(piece)
-        );
-        console.log("Castling failed: condition 3")
+        console.debug("Found piece in between king and rook!" + JSON.stringify(piece));
+        console.log("Castling failed: condition 3");
         return STATUS_INVALID_MOVE;
       }
     }
@@ -236,13 +234,13 @@ class Board {
       });
       if (sq_is_attacked) {
         console.debug("Square " + sq + "is attacked!");
-        console.log("Castling failed: condition 4")
+        console.log("Castling failed: condition 4");
         return STATUS_INVALID_MOVE;
       }
     }
 
     // good to go!
-    console.debug("Castling is a success!")
+    console.debug("Castling is a success!");
     if (chessCoord == MOVE_KINGSIDE_CASTLE) {
       king.pos = new Position(6, rank);
       rook.pos = new Position(5, rank);
@@ -252,7 +250,7 @@ class Board {
     }
     this.white_turn = !this.white_turn;
 
-    return STATUS_OK
+    return STATUS_OK;
   }
 
   find_piece_by_coord(find_white_pieces, pos) {
@@ -278,10 +276,7 @@ class Board {
     }
 
     // handle castling
-    if (
-      coord.move_type == MOVE_KINGSIDE_CASTLE ||
-      coord.move_type == MOVE_QUEENSIDE_CASTLE
-    ) {
+    if (coord.move_type == MOVE_KINGSIDE_CASTLE || coord.move_type == MOVE_QUEENSIDE_CASTLE) {
       return this.handleCastling(coord.move_type);
     }
 
@@ -290,9 +285,7 @@ class Board {
     candidate_pieces = candidate_pieces.filter((p) => {
       var moves = p.get_moves(this);
       console.debug("Moves: " + moves);
-      return moves.some(
-        (m) => m.x == coord.position.x && m.y == coord.position.y
-      );
+      return moves.some((m) => m.x == coord.position.x && m.y == coord.position.y);
     });
 
     console.debug("Candidates: " + JSON.stringify(candidate_pieces));
@@ -300,26 +293,26 @@ class Board {
       return STATUS_INVALID_MOVE;
     }
     if (candidate_pieces.length > 1) {
-      var dis = coord.disambiguation
-      assert(dis, "Many candidate pieces but no disambiguation!")
+      var dis = coord.disambiguation;
+      assert(dis, "Many candidate pieces but no disambiguation!");
       candidate_pieces = candidate_pieces.filter((p) => {
         if (dis.x != null && dis.x != p.pos.x) {
-          return false
+          return false;
         }
 
         if (dis.y != null && dis.y != p.pos.y) {
-          return false
+          return false;
         }
 
-        return true
-      })
+        return true;
+      });
     }
 
-    assert(candidate_pieces.length == 1, "I'm mindfucked " + candidate_pieces)
+    assert(candidate_pieces.length == 1, "I'm mindfucked " + candidate_pieces);
     var candidate_piece = candidate_pieces[0];
 
     var old_pos = new Position(candidate_piece.pos.x, candidate_piece.pos.y);
-    return this.moveFromTo(old_pos, coord.position, ('promote' in coord) ? coord.promote : null);
+    return this.moveFromTo(old_pos, coord.position, "promote" in coord ? coord.promote : null);
   }
 
   // is_check(true) => check's if white king is in check
@@ -359,10 +352,7 @@ class Board {
         var still_in_check = b_copy.is_check(is_white);
         if (!still_in_check) {
           console.debug(
-            "Move found that removed check! " +
-              JSON.stringify(m) +
-              " " +
-              JSON.stringify(p)
+            "Move found that removed check! " + JSON.stringify(m) + " " + JSON.stringify(p)
           );
         }
         return !still_in_check;
@@ -397,5 +387,5 @@ class Board {
 module.exports.Board = Board;
 module.exports.STATUS_OK = STATUS_OK;
 module.exports.STATUS_INVALID_MOVE = STATUS_INVALID_MOVE;
-module.exports.STATUS_DRAW = STATUS_DRAW
+module.exports.STATUS_DRAW = STATUS_DRAW;
 module.exports.STATUS_CHECKMATE = STATUS_CHECKMATE;

@@ -1,6 +1,6 @@
 const { Pawn, Knight, Bishop, Rook, Queen, King } = require("./piece");
 const { Position } = require("./position");
-const { assert } = require("./utils")
+const { assert } = require("./utils");
 
 const MOVE_KINGSIDE_CASTLE = 0;
 const MOVE_QUEENSIDE_CASTLE = 1;
@@ -13,7 +13,7 @@ function process_chess_coord(chess_coord) {
   //     "Nbd4" => {move_type: Regular, type: Knight, from_col: null, pos: ....}
   //     "e8=Q" => {move_type: Promotion, type:Pawn, promote: Queen}
   // return null if chess_coord is invalid
-  console.log("chess_coord.js: Process chess move " + chess_coord)
+  console.log("chess_coord.js: Process chess move " + chess_coord);
 
   // special cases
   // castling
@@ -24,7 +24,7 @@ function process_chess_coord(chess_coord) {
     return { move_type: MOVE_QUEENSIDE_CASTLE };
   }
 
-  var processed = { 
+  var processed = {
     move_type: MOVE_REGULAR,
     type: null,
     disambiguation: null,
@@ -34,10 +34,10 @@ function process_chess_coord(chess_coord) {
 
   // promotion
   if (chess_coord.indexOf("=") != -1) {
-    var piece = letter_to_piece(chess_coord[chess_coord.length - 1])
-    processed.move_type = MOVE_PAWN_PROMOTION
-    processed.promote = piece
-    chess_coord = chess_coord.substring(0, chess_coord.length - 2)
+    var piece = letter_to_piece(chess_coord[chess_coord.length - 1]);
+    processed.move_type = MOVE_PAWN_PROMOTION;
+    processed.promote = piece;
+    chess_coord = chess_coord.substring(0, chess_coord.length - 2);
   }
 
   // filter out 'x' Nxe4 => Ne4. All coords should be 3 or 4 letters long
@@ -47,14 +47,14 @@ function process_chess_coord(chess_coord) {
     .join("");
 
   if (chess_coord.length < 2) {
-    return null
+    return null;
   }
 
   // d4 => Pawn. Ne4 => Knight
   var piece = ["N", "B", "Q", "R", "K"].includes(chess_coord[0])
     ? letter_to_piece(chess_coord[0])
     : Pawn;
-  processed.type = piece
+  processed.type = piece;
 
   if (piece == null) {
     return null;
@@ -69,40 +69,38 @@ function process_chess_coord(chess_coord) {
 
   if (chess_coord.length > 2) {
     disambiguation = process_disambiguation(chess_coord.substring(0, chess_coord.length - 2)); // c, 1, c1
-    processed.disambiguation = disambiguation
+    processed.disambiguation = disambiguation;
 
     chess_coord = chess_coord.substring(chess_coord.length - 2);
   }
 
   var pos = coord_to_position(chess_coord);
-  processed.position = pos
+  processed.position = pos;
   if (pos == null) {
     return null;
   }
 
-  return processed
+  return processed;
 }
 
 function process_disambiguation(dis) {
-  console.debug("Process dis: " + dis)
+  console.debug("Process dis: " + dis);
   // 1 => Point(null, 0)
   // c => Point(2, null)
   // c1 => Point(2, 0)
   if (/^[1-8]$/.test(dis)) {
-    var row = parseInt(dis) - 1
-    return new Position(null, row)
-  }
-  else if (/^[a-h]$/.test(dis)) {
-    var x = letter_to_x(dis)
-    return new Position(x, null)
-  }
-  else if (/^[a-h][1-8]$/.test(dis)) {
-    var x = letter_to_x(dis[0])
-    var y = parseInt(dis[1]) - 1
-    return new Position(x, y)
+    var row = parseInt(dis) - 1;
+    return new Position(null, row);
+  } else if (/^[a-h]$/.test(dis)) {
+    var x = letter_to_x(dis);
+    return new Position(x, null);
+  } else if (/^[a-h][1-8]$/.test(dis)) {
+    var x = letter_to_x(dis[0]);
+    var y = parseInt(dis[1]) - 1;
+    return new Position(x, y);
   }
 
-  assert(false) // should never get here!
+  assert(false); // should never get here!
 }
 
 function coord_to_position(coord) {

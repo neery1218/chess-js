@@ -4,4 +4,4 @@ function assert(condition, message) {
   }
 }
 
-module.exports.assert = assert
+module.exports.assert = assert;

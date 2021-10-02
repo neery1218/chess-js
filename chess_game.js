@@ -1,7 +1,7 @@
-const {Position} = require('./position')
-const {Board} = require('./board')
-const {Knight, Bishop, Rook, Queen, Pawn, Piece} = require('./piece')
-const {process_chess_coord} = require('./chess_coord.js')
+const { Position } = require("./position");
+const { Board } = require("./board");
+const { Knight, Bishop, Rook, Queen, Pawn, Piece } = require("./piece");
+const { process_chess_coord } = require("./chess_coord.js");
 
 // console.log(process_chess_coord('Ne4'))
 // console.log(process_chess_coord('d4'))
