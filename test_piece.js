@@ -22,18 +22,30 @@ debugger;
 
 var b = new Board()
 var moves = [
-  'a4',
-  'b6',
+  'e3',
   'a5',
-  'h6',
-  'axb6',
+  'Qh5',
+  'Ra6',
+  'Qxa5',
   'h5',
-  'b7',
   'h4',
-  'bxa8=Q'
+  'Rah6',
+  'Qxc7',
+  'f6',
+  'Qxd7',
+  'Kf7',
+  'Qxb7',
+  'Qd3',
+  'Qxb8',
+  'Qh7',
+  'Qxc8',
+  'Kg6',
+  'Qe6',
 ]
 
 for (m of moves) {
   b.move(m)
   console.log(b.toString())
 }
+
+b.eval_game()

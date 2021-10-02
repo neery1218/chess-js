@@ -10,6 +10,7 @@ const { assert } = require("./utils");
 
 const STATUS_OK = 0;
 const STATUS_INVALID_MOVE = 1;
+const STATUS_DRAW = 2;
 const STATUS_CHECKMATE = 3;
 
 class Board {
@@ -119,25 +120,62 @@ class Board {
       return !(p.pos.x == to_pos.x && p.pos.y == to_pos.y);
     });
 
+    // FIXME: special case: remove pawn if en passanted
+
     if (this.white_turn) {
       this.black_pieces = opp_pieces;
     } else {
       this.white_pieces = opp_pieces;
     }
 
-    // check, checkmate
+    this.white_turn = !this.white_turn;
+    return STATUS_OK;
+  }
+
+  eval_game() {
     if (this.is_check(!this.white_turn)) {
       console.debug("Opposing player is in check!");
       if (this.is_checkmate(!this.white_turn)) {
         console.debug("Checkmate!");
         this.game_over = true;
+        return STATUS_CHECKMATE;
       } else {
         console.debug("Not checkmate though.");
       }
     }
 
-    this.white_turn = !this.white_turn;
-    return STATUS_OK;
+    if (this.is_draw()) {
+      console.log("Draw!")
+      return STATUS_DRAW;
+    }
+
+    return STATUS_OK
+  }
+
+  is_draw() {
+    // case 1: stalemate. current player can't make any moves
+    var friendly_pieces = this.white_turn ? this.white_pieces : this.black_pieces;
+    var available_moves = friendly_pieces.flatMap((p) => {
+      var moves = p.get_moves(this);
+      var valid_moves = moves.filter((m) => {
+        var b_copy = this.copy();
+        var status = b_copy.moveFromTo(p.pos, m);
+        return status == STATUS_OK;
+        });
+
+      if (valid_moves.length > 0) { console.log("Valid moves found in piece" + JSON.stringify(p) + " Moves:" + valid_moves) }
+      return valid_moves;
+    });
+    if (available_moves.length == 0) {
+      return true;
+    }
+
+    // TODO: case 2
+    // - king vs king + bishop
+    // - king vs king + knight
+    // - king + bishop vs king + bishop of the same color
+
+    return false;
   }
 
   handleCastling(chessCoord) {
@@ -262,11 +300,22 @@ class Board {
       return STATUS_INVALID_MOVE;
     }
     if (candidate_pieces.length > 1) {
-      // TODO: use disambiguation
-      return STATUS_INVALID_TYPE;
+      var dis = coord.disambiguation
+      assert(dis, "Many candidate pieces but no disambiguation!")
+      candidate_pieces = candidate_pieces.filter((p) => {
+        if (dis.x != null && dis.x != p.pos.x) {
+          return false
+        }
+
+        if (dis.y != null && dis.y != p.pos.y) {
+          return false
+        }
+
+        return true
+      })
     }
 
-    assert(candidate_pieces.length == 1);
+    assert(candidate_pieces.length == 1, "I'm mindfucked " + candidate_pieces)
     var candidate_piece = candidate_pieces[0];
 
     var old_pos = new Position(candidate_piece.pos.x, candidate_piece.pos.y);
@@ -348,4 +397,5 @@ class Board {
 module.exports.Board = Board;
 module.exports.STATUS_OK = STATUS_OK;
 module.exports.STATUS_INVALID_MOVE = STATUS_INVALID_MOVE;
+module.exports.STATUS_DRAW = STATUS_DRAW
 module.exports.STATUS_CHECKMATE = STATUS_CHECKMATE;

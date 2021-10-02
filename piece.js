@@ -4,8 +4,8 @@ class Piece {
   constructor(is_white, pos, name) {
     this.is_white = is_white;
     this.pos = pos;
-    this.name = name
-    this.moved = false
+    this.name = name;
+    this.moved = false;
   }
   get_moves(board) {
     throw "Unimplemented!";
@@ -30,20 +30,26 @@ class Piece {
     return pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8;
   }
 
+  _collision(pos, pieces) {
+    return pieces.some((piece) => {
+      return pos.x === piece.pos.x && pos.y === piece.pos.y;
+    });
+  }
+
   friendly_collision(pos, board) {
     var pieces = this.is_white ? board.white_pieces : board.black_pieces;
-    return this.collision(pos, pieces);
+    return this._collision(pos, pieces);
   }
 
   enemy_collision(pos, board) {
     var pieces = this.is_white ? board.black_pieces : board.white_pieces;
-    return this.collision(pos, pieces);
+    return this._collision(pos, pieces);
   }
 
-  collision(pos, pieces) {
-    return pieces.some((piece) => {
-      return pos.x === piece.pos.x && pos.y === piece.pos.y;
-    });
+  any_collision(pos, board) {
+    return (
+      this.friendly_collision(pos, board) || this.enemy_collision(pos, board)
+    );
   }
 
   // keep adding direction to cur_pos until cur_pos is out of bounds
@@ -55,12 +61,15 @@ class Piece {
       var cur_pos = this.pos;
       for (var i in [...Array(8).keys()]) {
         cur_pos = cur_pos.add(new Position(dir.x, dir.y));
-        if (this.friendly_collision(cur_pos, board) || !this.in_bounds(cur_pos)) {
+        if (
+          this.friendly_collision(cur_pos, board) ||
+          !this.in_bounds(cur_pos)
+        ) {
           break;
         }
         moves.push(cur_pos);
         if (this.enemy_collision(cur_pos, board)) {
-            break;
+          break;
         }
       }
     }
@@ -68,12 +77,15 @@ class Piece {
   }
 
   copy() {
-    var cloned = Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+    var cloned = Object.assign(
+      Object.create(Object.getPrototypeOf(this)),
+      this
+    );
 
     // ^ is a shallow clone, so i gotta deepcopy all non-primitive attributes
-    cloned.pos = this.pos.copy()
+    cloned.pos = this.pos.copy();
 
-    return cloned
+    return cloned;
   }
 }
 
@@ -88,14 +100,20 @@ class Pawn extends Piece {
     return this.is_white ? "WP" : "BP";
   }
 
-
   get_moves(board) {
     var moves = [];
     var dir = this.is_white ? new Position(0, 1) : new Position(0, -1);
 
     var forward = this.pos.add(dir);
-    if (!this.friendly_collision(forward, board) && !this.enemy_collision(forward, board)) {
+    if (!this.any_collision(forward, board)) {
       moves.push(forward);
+
+      if (!this.moved) {
+        var double = forward.add(dir);
+        if (!this.any_collision(double, board)) {
+          moves.push(double);
+        }
+      }
     }
 
     // check for captures
@@ -116,15 +134,21 @@ class Pawn extends Piece {
       moves.push(right);
     }
 
-    // check for first move
-    if (!this.moved) {
-      var double = forward.add(dir);
-      if (!this.friendly_collision(double, board) && !this.enemy_collision(double, board)) {
-        moves.push(double);
+    // en passant
+    if (board.moves.length > 0) {
+      var last_move = board.moves.slice(-1)[0];
+      var distance = Math.abs(last_move.to.y - last_move.from.y);
+      if (
+        last_move.piece instanceof Pawn &&
+        distance == 2 &&
+        last_move.to.y == this.pos.y
+      ) {
+        moves.push(
+          new Position(last_move.to.x, this.pos.y).add(dir)
+        );
       }
     }
 
-    // TODO: check for en passant
     return moves;
   }
 }
