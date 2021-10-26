@@ -2,9 +2,10 @@
   "name": "chess",
   "version": "1.0.0",
   "description": "chess game",
-  "main": "index.js",
+  "main": "built/test_piece.js",
   "scripts": {
-    "test": "jest"
+    "start": "tsc && node built/test_piece.js",
+    "test": "tsc && jest --silent built/"
   },
   "author": "neerajen",
   "license": "ISC",
